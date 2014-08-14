@@ -1,16 +1,67 @@
-<form action="" method="POST">
-  <input type="hidden" value="1" name="factura"/>
-  <input type="submit"/>
-</form>
+
 
 <?php
 
 require_once "lib/nusoap.php";
 require_once "inc/config.inc.php";
 require_once "inc/modelo.inc.php";
+require_once "inc/database.inc.php";
+
+$db = new Database();
+$consulta = "SELECT * FROM facturacion";
+$resultado = $db->prepare($consulta);
+$resultado->execute();
+
+
+
+
 
 $datos = datos_principales();
 $productos = datos_productos();
+
+
+?>
+
+<table>
+  <thead>
+    <tr>
+      <th>
+        ID
+      </th>
+      <th>
+        Comprobante
+      </th>
+      <th>
+        PDF
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach($resultado as $dato):?>
+    <tr>
+      <td>
+        <?php echo $dato["id"]?>
+      </td>
+      <td>
+        <?php echo $dato["comprobante"]?>
+      </td>
+      <td>
+        <a href="pdf/<?php echo $dato['id']?>">
+          <button type="button">Crear pdf</button>
+        </a>
+      </td>
+    </tr>
+    <?php endforeach;?>
+  </tbody>
+
+</table>
+
+<form action="" method="POST">
+  <input type="hidden" value="1" name="factura"/>
+  <input type="submit"/>
+</form>
+
+<?
 
 if(isset($_POST["factura"])=="1"){
 
@@ -107,6 +158,15 @@ $sello = $cliente->call("sellaComprobante",$sellaComprobante);
 
 if($sello==""){
   echo "Se ha podido facturar";
+
+  $consulta = "INSERT INTO facturacion (id, comprobante) VALUES ('null', ".$setComprobante['setComprobanteV2012Result'].")";
+
+  if($db->query($consulta)){
+    echo "Se han almacenado";
+  }else{
+    echo "No se han almacenado";
+  }
+
 }else{
   echo "No se ha podido facturar";
   $_POST["factura"] = 0;
